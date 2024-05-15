@@ -62,7 +62,7 @@ set_dialec = set(tmp_df["dialectic"])
 set_rheto= set(tmp_df["rhetoric"])
 # Create sets for each column
 venn3([set_logic, set_dialec, set_rheto], set_labels=("logic", "dialectic", "rhetoric"))
-
+plt.savefig("proportion_dimensions_venn_diagrams_on_sample.jpeg")
 plt.show()
 
 ## Plotting
