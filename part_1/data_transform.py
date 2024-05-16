@@ -14,21 +14,16 @@ def get_files(folder_path):
 
 previous_loc = ".."
 root_folder = "./data/arg14/"
-files = get_files(os.path.join(previous_loc, root_folder))
-print(files)
+root_folder2 = "./data/arg9/"
 
-## get the .md files:
+files = get_files(os.path.join(previous_loc, root_folder2))
 
 # Loop through each file and construct the dataset 
 new_data = {'args': [], 'labels': []}
 
 for file in files:
     # open file
-    #with open(os.path.join(previous_loc, root_folder, file)) as f:
-    #raw = pd.read_csv("../data/arg14/Online-shopping-brings-more-harm-than-good-(PRO).tsv", sep="\t")
-    tmp_raw = pd.read_csv(f"{os.path.join(previous_loc, root_folder, file)}", sep="\t")
-    #cols = ["label", "a1", "a2"]
-
+    tmp_raw = pd.read_csv(f"{os.path.join(previous_loc, root_folder2, file)}", sep="\t")
 
     mem = 1
     for i in range(len(tmp_raw)):
@@ -47,7 +42,7 @@ for file in files:
             mem = 1
 
 new_data = pd.DataFrame(new_data)
-new_data.to_csv("transformed_data.tsv", sep="\t", index=False)
+new_data.to_csv("transformed_data2.tsv", sep="\t", index=False)
 
 
 
