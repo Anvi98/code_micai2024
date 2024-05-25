@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from matplotlib_venn import venn3, venn3_circles, venn3_unweighted 
 import glob
 import os
+from sklearn.feature_extraction.text import CountVectorizer
+import operator
 
 # load dataset 
 raw = pd.read_csv("../data/arguments.csv")
@@ -87,7 +89,7 @@ set_rheto= set(tmp_df["rhetoric"])
 # Create sets for each column
 venn3([set_logic, set_dialec, set_rheto], set_labels=("logic", "dialectic", "rhetoric"))
 plt.savefig("proportion_dimensions_venn_diagrams_on_sample.jpeg")
-plt.show()
+#plt.show()
 
 ## Plotting
 
@@ -111,7 +113,44 @@ plt.pie(y, labels = ["logical", "dialectical", "rhetorical"], explode=[0.1,0,0],
 plt.savefig("proportions_dimensions_rel_args.png")
 plt.show()
 
-#Word count on relevant_args to identify repeated 
+#Word count on relevant_args to identify repeated terms 
+# On relevant_args only (1,2,3 grams)
+
+vectorizer = CountVectorizer(analyzer="word", ngram_range=(1,1))
+vectorizer2 = CountVectorizer(analyzer="word", ngram_range=(2,2))
+vectorizer3 = CountVectorizer(analyzer="word", ngram_range=(3,3))
+
+count_1 = vectorizer.fit_transform(relevant_args["text"])
+unigram = vectorizer.get_feature_names_out()
+df = pd.DataFrame(count_1.toarray(), columns=unigram)
+#df.to_csv("test00.csv")
+count_2 = vectorizer2.fit_transform(relevant_args["text"])
+twograms = vectorizer2.get_feature_names_out()
+
+count_3 = vectorizer3.fit_transform(relevant_args["text"])
+trigrams = vectorizer3.get_feature_names_out()
+
+words = relevant_args["text"]
+words = list(words.to_dict().values())
+words = " ".join(words).split(" ")
+
+vocab = {}
+
+for w in twograms:
+    i = 0
+    for i in range(len(words) - 1):
+        tmp_w = " ".join([words[i], words[i+1]])
+        if w.lower() == tmp_w.lower():
+            if tmp_w.lower() in list(vocab.keys()):
+                vocab[tmp_w.lower()] += 1 
+            elif tmp_w.lower() not in list(vocab.keys()):
+                vocab[tmp_w.lower()] = 1
+    i +=1
+    print(i)
+
+vocab = sorted(vocab.items(), key=operator.itemgetter(1))
+
+#print(vocab)
 
 """Notes on this short EDA: 
     - The dataset is comprised of 437 samples in an organised text format (csv)
