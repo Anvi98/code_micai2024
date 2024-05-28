@@ -89,7 +89,7 @@ set_rheto= set(tmp_df["rhetoric"])
 # Create sets for each column
 venn3([set_logic, set_dialec, set_rheto], set_labels=("logic", "dialectic", "rhetoric"))
 plt.savefig("proportion_dimensions_venn_diagrams_on_sample.jpeg")
-#plt.show()
+plt.show()
 
 ## Plotting
 
@@ -100,7 +100,7 @@ plt.xlabel("Argument class")
 plt.ylabel("No. of each class")
 plt.title("Number of arguments and non-arguments")
 plt.savefig("arg_vs_non_args.png")
-#plt.show()
+plt.show()
 
 
 # Number of Relevants vs non-relevant arguments 
@@ -111,7 +111,7 @@ print(num_non_rel_args, args["is_argument"].count(), relevant_args.is_argument.c
 y = np.array([num_rel_logic, num_rel_dialect, num_rel_rheto])
 plt.pie(y, labels = ["logical", "dialectical", "rhetorical"], explode=[0.1,0,0], autopct='%1.1f%%')
 plt.savefig("proportions_dimensions_rel_args.png")
-#plt.show()
+plt.show()
 
 #Word count on relevant_args to identify repeated terms 
 def flatten_doc(doc):
@@ -175,6 +175,7 @@ for corpus in corpora:
 thresholds = [100, 100, 20]
 test = count_rel["1-grams"][0]
 
+## Continue here to save the key terms for each qualities
 filtered = [k for k,v in test.items() if v > thresholds[0]]
 print(filtered)
 
