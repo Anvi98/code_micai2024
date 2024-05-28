@@ -10,7 +10,6 @@ import glob
 import os
 from sklearn.feature_extraction.text import CountVectorizer
 import operator
-from collections import Counter
 
 # load dataset 
 raw = pd.read_csv("../data/arguments.csv")
@@ -101,7 +100,7 @@ plt.xlabel("Argument class")
 plt.ylabel("No. of each class")
 plt.title("Number of arguments and non-arguments")
 plt.savefig("arg_vs_non_args.png")
-plt.show()
+#plt.show()
 
 
 # Number of Relevants vs non-relevant arguments 
@@ -112,32 +111,78 @@ print(num_non_rel_args, args["is_argument"].count(), relevant_args.is_argument.c
 y = np.array([num_rel_logic, num_rel_dialect, num_rel_rheto])
 plt.pie(y, labels = ["logical", "dialectical", "rhetorical"], explode=[0.1,0,0], autopct='%1.1f%%')
 plt.savefig("proportions_dimensions_rel_args.png")
-plt.show()
+#plt.show()
 
 #Word count on relevant_args to identify repeated terms 
-# On relevant_args only (1,2,3 grams)
+def flatten_doc(doc):
+    doc = list(doc.to_dict().values())
+    doc = [" ".join(paragraph.split(" ")) for paragraph in doc] 
+    flat = " ".join(doc)
 
-words = relevant_args["text"]
-words = list(words.to_dict().values())
-words = [p.split(" ") for p in words] 
-text_words = [" ".join(p) for p in words]
+    return flat #This is a string
+
+def extract_rel_tokens(flat_doc, vectorizer):
+    # Fit and transform the corpus
+    count_matrix = vectorizer.fit_transform([flat_doc])
+    # Get feature names
+    feature_names = vectorizer.get_feature_names_out()
+    # Convert count matrix to DataFrame
+    df = pd.DataFrame(count_matrix.toarray(), columns=feature_names)
+    flat_dict = df.to_dict()
+
+    for word,count in flat_dict.items():
+        flat_dict[word] = count[0]
+
+    flat_dict = dict(sorted(flat_dict.items(), key=lambda x: x[1], reverse=False))
+
+    return flat_dict ## A dictionary
+
+# On relevant_args only (1,2,3 grams)
+rel = relevant_args["text"]
+rel_logic = relevant_args[relevant_args["cogency_(logic)"] >= 3]["text"]
+rel_dialectic = relevant_args[relevant_args["reasonableness_(dialectic)"] >= 3]["text"]
+rel_rhetoric = relevant_args[relevant_args["effectiveness_(rhetoric)"] >= 3]["text"]
+corpora = [ rel, rel_logic, rel_dialectic, rel_rhetoric]
 
 # Initialize CountVectorizer with custom analyzer and n_grams from 1-3
-print("counting..")
-vectorizer = CountVectorizer(ngram_range=(1, 3))
+vectorizer = CountVectorizer(ngram_range=(1, 1))
+vectorizer2 = CountVectorizer(ngram_range=(2, 2))
+vectorizer3 = CountVectorizer(ngram_range=(3, 3))
+vectorizers = [vectorizer, vectorizer2, vectorizer3]
 
-# Fit and transform the corpus
-print("fitting..")
-count_matrix = vectorizer.fit_transform(text_words)
+#words = relevant_args["text"]
+#words = rel_logic
+count_rel = {"1-grams": [], "2-grams": [], "3-grams": []}
+count_logic = {"1-grams": [], "2-grams": [], "3-grams": []}
+count_dialectic = {"1-grams": [], "2-grams": [], "3-grams": []}
+count_rethoric = {"1-grams": [], "2-grams": [], "3-grams": []}
+counts = [ count_rel, count_logic, count_dialectic, count_rethoric]
 
-# Get feature names
-feature_names = vectorizer.get_feature_names_out()
+idx = 0
+for corpus in corpora:
+    j = 0
+    for vec in vectorizers:
+        
+        flat = flatten_doc(corpus)
+        flat_dict = extract_rel_tokens(flat, vec)
+        counts[idx][f"{j+1}-grams"].append(flat_dict) 
+        j +=1
+    idx +=1
 
-# Convert count matrix to DataFrame
-df = pd.DataFrame(count_matrix.toarray(), columns=feature_names)
+#print(counts[0]["3-grams"])
 
-print("saving..")
-#df.to_csv("test_00.csv", index=False)
+## Filter by counts 
+thresholds = [100, 100, 20]
+test = count_rel["1-grams"][0]
+
+filtered = [k for k,v in test.items() if v > thresholds[0]]
+print(filtered)
+
+
+#sorted_vocab = df.sort_values(by=list(df.columns), ascending=True) 
+
+#df_sorted = df[fi.columns]
+#print(df_sorted.head())
 
 
 """Notes on this short EDA: 
