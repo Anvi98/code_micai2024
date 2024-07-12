@@ -1,1 +1,3 @@
 .env/
+./part1/wiki-news-300d-1M.vec
+./part1/glove.42B.300d.txt
