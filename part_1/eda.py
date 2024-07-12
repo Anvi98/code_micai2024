@@ -133,16 +133,16 @@ def extract_rel_tokens(flat_doc, vectorizer):
     for word,count in flat_dict.items():
         flat_dict[word] = count[0]
 
-    flat_dict = dict(sorted(flat_dict.items(), key=lambda x: x[1], reverse=False))
+    flat_dict = dict(sorted(flat_dict.items(), key=lambda x: x[1], reverse=True))
 
     return flat_dict ## A dictionary
 
 # On relevant_args only (1,2,3 grams)
-rel = relevant_args["text"]
+#rel = relevant_args["text"]
 rel_logic = relevant_args[relevant_args["cogency_(logic)"] >= 3]["text"]
 rel_dialectic = relevant_args[relevant_args["reasonableness_(dialectic)"] >= 3]["text"]
 rel_rhetoric = relevant_args[relevant_args["effectiveness_(rhetoric)"] >= 3]["text"]
-corpora = [ rel, rel_logic, rel_dialectic, rel_rhetoric]
+corpora = [ rel_logic, rel_dialectic, rel_rhetoric]
 
 # Initialize CountVectorizer with custom analyzer and n_grams from 1-3
 vectorizer = CountVectorizer(ngram_range=(1, 1))
@@ -152,11 +152,11 @@ vectorizers = [vectorizer, vectorizer2, vectorizer3]
 
 #words = relevant_args["text"]
 #words = rel_logic
-count_rel = {"1-grams": [], "2-grams": [], "3-grams": []}
+#count_rel = {"1-grams": [], "2-grams": [], "3-grams": []}
 count_logic = {"1-grams": [], "2-grams": [], "3-grams": []}
 count_dialectic = {"1-grams": [], "2-grams": [], "3-grams": []}
 count_rethoric = {"1-grams": [], "2-grams": [], "3-grams": []}
-counts = [ count_rel, count_logic, count_dialectic, count_rethoric]
+counts = [count_logic, count_dialectic, count_rethoric]
 
 idx = 0
 for corpus in corpora:
@@ -172,18 +172,56 @@ for corpus in corpora:
 #print(counts[0]["3-grams"])
 
 ## Filter by counts 
-thresholds = [100, 100, 20]
-test = count_rel["1-grams"][0]
+thresholds = [100, 100, 50]
+#test = count_rel["1-grams"][0]
+
 
 ## Continue here to save the key terms for each qualities
-filtered = [k for k,v in test.items() if v > thresholds[0]]
-print(filtered)
+filtered_logic = {"1-grams": [], '2-grams': [], "3-grams": []}
+filtered_dialectic = {"1-grams": [], '2-grams': [], "3-grams": []}
+filtered_rehtoric = {"1-grams": [], '2-grams': [], "3-grams": []}
+filtered_words = [filtered_logic, filtered_dialectic, filtered_rehtoric]
+
+for i in range(len(counts)):
+    tmp_idx = 0
+    for k,v in counts[i].items():
+        for w, count in v[0].items():
+            if count >= thresholds[tmp_idx]:
+                filtered_words[i][f"{tmp_idx+1}-grams"].append(w)
+            if count < thresholds[tmp_idx]:
+                break
+        tmp_idx +=1
+
+#filtered = [k for k,v in test.items() if v > thresholds[0]]
+#print(filtered)
+#print(filtered_words[2]["3-grams"])
+#print(counts[2]["3-grams"])
+unigram_words = []
+bi_grams = []
+tri_grams = []
+sets_grams = [unigram_words, bi_grams, tri_grams]
+
+for i in range(len(filtered_words)):
+    tmp_idx = 0
+    for k,v in filtered_words[i].items():
+        sets_grams[tmp_idx].append(v)
+        tmp_idx +=1
 
 
-#sorted_vocab = df.sort_values(by=list(df.columns), ascending=True) 
+# Convert to sets for plotting 
+unigram_words = [set(l) for l in unigram_words]
+bi_grams= [set(l) for l in bi_grams] 
+tri_grams = [set(l) for l in tri_grams]
 
-#df_sorted = df[fi.columns]
-#print(df_sorted.head())
+uni_logic, uni_dialectic, uni_rethoric = unigram_words
+bi_logic, bi_dialectic, bi_rethoric = bi_grams
+tri_logic, tri_dialectic, tri_rethoric = tri_grams
+
+# Create sets for each column
+venn3([tri_logic, tri_dialectic, tri_rethoric], set_labels=("logic", "dialectic", "rhetoric"))
+#plt.savefig("proportion_dimensions_venn_diagrams_on_sample.jpeg")
+plt.show()
+
 
 
 """Notes on this short EDA: 
